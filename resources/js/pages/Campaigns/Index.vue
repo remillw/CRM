@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Plus, Eye, Trash2, RotateCcw, MapPin, Target } from 'lucide-vue-next';
+import { Plus, Eye, Trash2, RotateCcw, MapPin, Target, FileSpreadsheet } from 'lucide-vue-next';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -73,9 +73,9 @@ const restartCampaign = (id: number) => {
         <div class="flex h-full flex-1 flex-col gap-6 p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold">Campagnes de Scraping</h1>
+                    <h1 class="text-3xl font-bold">Campagnes</h1>
                     <p class="text-muted-foreground">
-                        Gérez vos campagnes de scraping Google Maps
+                        Gérez vos campagnes de contacts
                     </p>
                 </div>
                 <Link href="/campaigns/create">

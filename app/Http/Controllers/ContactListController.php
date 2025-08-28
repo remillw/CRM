@@ -19,6 +19,7 @@ class ContactListController extends Controller
             ->allowedFilters(['name'])
             ->allowedSorts(['created_at', 'name', 'total_contacts'])
             ->withCount(['contacts', 'segments'])
+            ->with('syncCampaign:id,name')
             ->paginate(15)
             ->withQueryString();
 
@@ -28,7 +29,7 @@ class ContactListController extends Controller
             'total_contacts_in_lists' => \App\Models\ContactListItem::count(),
         ];
 
-        return Inertia::render('ContactLists/Index', [
+        return Inertia::render('ContactLists/IndexModern', [
             'lists' => $lists,
             'stats' => $stats,
             'filters' => $request->only(['filter', 'sort'])
@@ -208,41 +209,49 @@ class ContactListController extends Controller
 
     public function update(Request $request, ContactList $contactList)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'status' => 'required|in:active,inactive',
-            'campaign_ids' => 'required|array',
-            'campaign_ids.*' => 'exists:campaigns,id',
-            'website_filter' => 'required|in:all,with_website,without_website,good_website,bad_website',
-            'command_filter' => 'required|in:all,can_command,cannot_command',
-            'seo_filter' => 'required|in:all,top_10,top_20,poor_ranking,not_analyzed',
-            'email_filter' => 'required|in:all,with_email,without_email',
-            'rating_filter' => 'required|in:all,excellent,good,poor,no_rating',
-            'verified_filter' => 'required|in:all,verified,not_verified',
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'status' => 'required|in:active,inactive',
+                'campaign_ids' => 'required|array',
+                'campaign_ids.*' => 'exists:campaigns,id',
+                'website_filter' => 'required|in:all,with_website,without_website,good_website,bad_website',
+                'command_filter' => 'required|in:all,can_command,cannot_command',
+                'seo_filter' => 'required|in:all,top_10,top_20,poor_ranking,not_analyzed',
+                'email_filter' => 'required|in:all,with_email,without_email',
+                'rating_filter' => 'required|in:all,excellent,good,poor,no_rating',
+                'verified_filter' => 'required|in:all,verified,not_verified',
+            ]);
 
-        // Mettre à jour la liste
-        $contactList->update([
-            'name' => $validated['name'],
-            'description' => $validated['description'],
-            'status' => $validated['status'],
-            'filters' => [
-                'website_filter' => $validated['website_filter'],
-                'command_filter' => $validated['command_filter'],
-                'seo_filter' => $validated['seo_filter'],
-                'email_filter' => $validated['email_filter'],
-                'rating_filter' => $validated['rating_filter'],
-                'verified_filter' => $validated['verified_filter'],
-                'campaign_ids' => $validated['campaign_ids']
-            ],
-        ]);
+            // Mettre à jour la liste
+            $contactList->update([
+                'name' => $validated['name'],
+                'description' => $validated['description'],
+                'status' => $validated['status'],
+                'filters' => [
+                    'website_filter' => $validated['website_filter'],
+                    'command_filter' => $validated['command_filter'],
+                    'seo_filter' => $validated['seo_filter'],
+                    'email_filter' => $validated['email_filter'],
+                    'rating_filter' => $validated['rating_filter'],
+                    'verified_filter' => $validated['verified_filter'],
+                    'campaign_ids' => $validated['campaign_ids']
+                ],
+            ]);
 
-        // Reconstruire la liste avec les nouveaux filtres
-        $this->rebuildContactList($contactList, $validated);
+            // Reconstruire la liste avec les nouveaux filtres
+            $this->rebuildContactList($contactList, $validated);
+            
+            // Mettre à jour le nombre de contacts
+            $contactList->update(['total_contacts' => $contactList->contacts()->count()]);
 
-        return redirect()->route('contact-lists.show', $contactList)
-            ->with('success', 'Liste mise à jour avec succès !');
+            return redirect()->route('contact-lists.index')
+                ->with('success', 'Liste mise à jour avec succès !');
+                
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Erreur lors de la mise à jour : ' . $e->getMessage()])->withInput();
+        }
     }
 
     public function destroy(ContactList $contactList)
@@ -397,4 +406,19 @@ class ContactListController extends Controller
             ]);
         }
     }
+
+    public function sync(ContactList $contactList)
+    {
+        try {
+            $contactList->syncContacts();
+            
+            // Recharger pour avoir le nombre de contacts mis à jour
+            $contactList->refresh();
+            
+            return back()->with('success', "Synchronisation réussie ! {$contactList->total_contacts} contacts synchronisés.");
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erreur lors de la synchronisation : ' . $e->getMessage());
+        }
+    }
+
 }

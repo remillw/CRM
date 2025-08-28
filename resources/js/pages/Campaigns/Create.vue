@@ -11,7 +11,8 @@ import { ArrowLeft, MapPin, Search, Target, Hash } from 'lucide-vue-next';
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Campagnes', href: '/campaigns' },
-    { title: 'Nouvelle Campagne', href: '/campaigns/create' },
+    { title: 'Choix', href: '/campaigns/create-choice' },
+    { title: 'Scraping Google Maps', href: '/campaigns/create-scraping' },
 ];
 
 const form = useForm({
@@ -22,7 +23,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/campaigns');
+    form.post('/campaigns/scraping');
 };
 
 const suggestedActivities = [
@@ -56,14 +57,14 @@ const selectCity = (city: string) => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 p-6">
             <div class="flex items-center gap-4">
-                <Button variant="outline" size="sm" @click="$inertia.visit('/campaigns')">
+                <Button variant="outline" size="sm" @click="$inertia.visit('/campaigns/create-choice')">
                     <ArrowLeft class="mr-2 h-4 w-4" />
                     Retour
                 </Button>
                 <div>
-                    <h1 class="text-3xl font-bold">Nouvelle Campagne</h1>
+                    <h1 class="text-3xl font-bold">Scraping Google Maps</h1>
                     <p class="text-muted-foreground">
-                        Configurez votre campagne de scraping Google Maps
+                        Recherchez et extrayez automatiquement des contacts depuis Google Maps
                     </p>
                 </div>
             </div>

@@ -30,7 +30,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Dashboard', compact('stats'));
     })->name('dashboard');
 
-    // Campaigns routes
+    // Campaigns routes - Order matters for routing!
+    Route::get('campaigns/create-choice', [CampaignController::class, 'createChoice'])->name('campaigns.create-choice');
+    Route::get('campaigns/create-empty', [CampaignController::class, 'createEmpty'])->name('campaigns.create-empty');
+    Route::post('campaigns/create-empty', [CampaignController::class, 'storeEmpty'])->name('campaigns.store-empty');
+    Route::get('campaigns/create-scraping', [CampaignController::class, 'createScraping'])->name('campaigns.create-scraping');
+    Route::post('campaigns/scraping', [CampaignController::class, 'storeScraping'])->name('campaigns.store-scraping');
+    Route::get('campaigns/create-with-import', [CampaignController::class, 'createWithImport'])->name('campaigns.create-with-import');
+    Route::post('campaigns/import', [CampaignController::class, 'import'])->name('campaigns.import');
+    Route::get('campaigns/download-template', [CampaignController::class, 'downloadTemplate'])->name('campaigns.download-template');
     Route::resource('campaigns', CampaignController::class);
     Route::post('campaigns/{campaign}/restart', [CampaignController::class, 'restart'])->name('campaigns.restart');
 
@@ -51,6 +59,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('contact-lists/{contactList}/contacts/remove', [ContactListController::class, 'removeContacts'])->name('contact-lists.contacts.remove');
     Route::post('contact-lists/{contactList}/campaign/{campaign}', [ContactListController::class, 'addFromCampaign'])->name('contact-lists.add-from-campaign');
     Route::get('contact-lists/{contactList}/export', [ContactListController::class, 'export'])->name('contact-lists.export');
+    Route::post('contact-lists/{contactList}/sync', [ContactListController::class, 'sync'])->name('contact-lists.sync');
 
     // Email Templates routes
     Route::resource('email-templates', EmailTemplateController::class);
